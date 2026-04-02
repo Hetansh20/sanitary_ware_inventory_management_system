@@ -1,14 +1,34 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import {
+  FiAlertTriangle,
+  FiBox,
+  FiGrid,
+  FiLogOut,
+  FiMapPin,
+  FiRepeat,
+  FiShoppingBag,
+  FiTruck,
+  FiUsers,
+  FiActivity,
+  FiClock,
+} from "react-icons/fi";
 
 const navItems = [
-  { path: "/dashboard", label: "Dashboard", icon: "▦" },
-  { path: "/add-tile", label: "Add Tile", icon: "＋" },
-  { path: "/view-tiles", label: "View Tiles", icon: "☰" },
-  { path: "/stock", label: "Stock", icon: "◈" },
+  { path: "/dashboard", label: "Dashboard", icon: FiGrid, roles: ["admin", "staff"] },
+  { path: "/tiles", label: "Tiles", icon: FiBox, roles: ["admin", "staff"] },
+  { path: "/inventory", label: "Inventory", icon: FiActivity, roles: ["admin", "staff"] },
+  { path: "/suppliers", label: "Suppliers", icon: FiTruck, roles: ["admin", "staff"] },
+  { path: "/warehouses", label: "Warehouses", icon: FiMapPin, roles: ["admin", "staff"] },
+  { path: "/orders", label: "Orders", icon: FiShoppingBag, roles: ["admin", "staff"] },
+  { path: "/transfers", label: "Transfers", icon: FiRepeat, roles: ["admin", "staff"] },
+  { path: "/users", label: "Users", icon: FiUsers, roles: ["admin"] },
+  { path: "/transactions", label: "Transactions", icon: FiActivity, roles: ["admin", "staff"] },
+  { path: "/alerts", label: "Alerts", icon: FiAlertTriangle, roles: ["admin", "staff"] },
+  { path: "/activity", label: "Activity Logs", icon: FiClock, roles: ["admin", "staff"] },
 ];
 
-export default function Sidebar({ onLogout }) {
+export default function Sidebar({ isOpen, onClose, onLogout, role = "staff" }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -17,158 +37,62 @@ export default function Sidebar({ onLogout }) {
   };
 
   return (
-    <aside style={styles.sidebar}>
-      {/* Logo */}
-      <div style={styles.brand}>
-        <div style={styles.logoMark}>
-          <span style={styles.logoIcon}>⬡</span>
-        </div>
-        <div>
-          <div style={styles.brandName}>TileERP</div>
-          <div style={styles.brandSub}>Inventory Suite</div>
-        </div>
-      </div>
+    <>
+      {isOpen && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="fixed inset-0 z-30 bg-slate-900/40 lg:hidden"
+          aria-label="Close sidebar"
+        />
+      )}
 
-      {/* Divider */}
-      <div style={styles.divider} />
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-800 bg-slate-950 text-slate-200 transition-transform duration-300 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0`}
+      >
+        <div className="flex h-full flex-col p-4">
+          <div className="mb-5 rounded-2xl bg-gradient-to-br from-sky-500 to-teal-500 p-4 text-slate-950">
+            <p className="text-xs font-bold uppercase tracking-[0.2em]">TileFlow</p>
+            <p className="mt-2 text-xl font-black">Inventory Studio</p>
+            <p className="mt-1 text-xs font-semibold text-slate-900/80">Operational Dashboard</p>
+          </div>
 
-      {/* Nav Label */}
-      <div style={styles.navLabel}>MAIN MENU</div>
+          <nav className="flex-1 space-y-1 overflow-y-auto">
+            {navItems.filter((item) => item.roles.includes(role)).map((item) => {
+              const Icon = item.icon;
 
-      {/* Nav Links */}
-      <nav style={styles.nav}>
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            style={({ isActive }) => ({
-              ...styles.navItem,
-              ...(isActive ? styles.navItemActive : {}),
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                      isActive
+                        ? "bg-slate-800 text-white"
+                        : "text-slate-300 hover:bg-slate-900 hover:text-white"
+                    }`
+                  }
+                >
+                  <Icon size={16} />
+                  <span>{item.label}</span>
+                </NavLink>
+              );
             })}
-          >
-            <span style={styles.navIcon}>{item.icon}</span>
-            <span>{item.label}</span>
-            {/* Active indicator bar */}
-          </NavLink>
-        ))}
-      </nav>
+          </nav>
 
-      {/* Bottom */}
-      <div style={styles.bottom}>
-        <div style={styles.divider} />
-        <button onClick={handleLogout} style={styles.logoutBtn}>
-          <span style={styles.navIcon}>⏻</span>
-          <span>Logout</span>
-        </button>
-        <div style={styles.versionTag}>v1.0.0 — Academic Build</div>
-      </div>
-    </aside>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-3 py-2.5 text-sm font-bold text-white transition hover:bg-rose-700"
+          >
+            <FiLogOut size={16} />
+            Logout
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
-
-const styles = {
-  sidebar: {
-    width: "240px",
-    minHeight: "100vh",
-    background: "linear-gradient(180deg, #0F172A 0%, #1E293B 100%)",
-    display: "flex",
-    flexDirection: "column",
-    padding: "0",
-    boxShadow: "4px 0 20px rgba(0,0,0,0.15)",
-    flexShrink: 0,
-  },
-  brand: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    padding: "24px 20px 20px",
-  },
-  logoMark: {
-    width: "40px",
-    height: "40px",
-    background: "linear-gradient(135deg, #6366F1, #8B5CF6)",
-    borderRadius: "10px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoIcon: {
-    fontSize: "20px",
-    color: "#fff",
-  },
-  brandName: {
-    color: "#F1F5F9",
-    fontSize: "17px",
-    fontWeight: "700",
-    letterSpacing: "0.3px",
-  },
-  brandSub: {
-    color: "#64748B",
-    fontSize: "11px",
-    letterSpacing: "0.5px",
-  },
-  divider: {
-    height: "1px",
-    background: "rgba(255,255,255,0.07)",
-    margin: "0 20px",
-  },
-  navLabel: {
-    color: "#475569",
-    fontSize: "10px",
-    fontWeight: "700",
-    letterSpacing: "1.5px",
-    padding: "16px 24px 8px",
-  },
-  nav: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "4px",
-    padding: "4px 12px",
-    flex: 1,
-  },
-  navItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    padding: "11px 14px",
-    borderRadius: "10px",
-    color: "#94A3B8",
-    textDecoration: "none",
-    fontSize: "14px",
-    fontWeight: "500",
-    transition: "all 0.18s ease",
-  },
-  navItemActive: {
-    background: "linear-gradient(135deg, rgba(99,102,241,0.25), rgba(139,92,246,0.15))",
-    color: "#A5B4FC",
-    borderLeft: "3px solid #6366F1",
-  },
-  navIcon: {
-    fontSize: "16px",
-    width: "20px",
-    textAlign: "center",
-  },
-  bottom: {
-    padding: "0 0 16px",
-  },
-  logoutBtn: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    padding: "11px 26px",
-    background: "none",
-    border: "none",
-    color: "#F87171",
-    fontSize: "14px",
-    fontWeight: "500",
-    cursor: "pointer",
-    width: "100%",
-    marginTop: "8px",
-  },
-  versionTag: {
-    color: "#334155",
-    fontSize: "10px",
-    padding: "6px 24px 0",
-    letterSpacing: "0.4px",
-  },
-};

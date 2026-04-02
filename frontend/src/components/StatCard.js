@@ -1,63 +1,25 @@
 import React from "react";
 
-export default function StatCard({ label, value, icon, color, bg, trend }) {
+export default function StatCard({ title, value, icon: Icon, hint, tone = "sky" }) {
+  const tones = {
+    sky: "from-sky-500 to-cyan-500",
+    emerald: "from-emerald-500 to-teal-500",
+    amber: "from-amber-500 to-orange-500",
+    rose: "from-rose-500 to-red-500",
+  };
+
   return (
-    <div style={{ ...styles.card, borderTop: `3px solid ${color}` }}>
-      <div style={styles.top}>
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-slate-700 dark:bg-slate-900">
+      <div className="flex items-start justify-between">
         <div>
-          <div style={styles.label}>{label}</div>
-          <div style={styles.value}>{value}</div>
-          {trend && <div style={{ ...styles.trend, color: trend.up ? "#10B981" : "#F87171" }}>
-            {trend.up ? "▲" : "▼"} {trend.text}
-          </div>}
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">{title}</p>
+          <p className="mt-2 text-3xl font-black text-slate-800 dark:text-slate-100">{value}</p>
+          {hint ? <p className="mt-2 text-xs font-medium text-slate-500 dark:text-slate-300">{hint}</p> : null}
         </div>
-        <div style={{ ...styles.iconBox, background: bg }}>
-          <span style={{ fontSize: "22px" }}>{icon}</span>
+        <div className={`rounded-xl bg-gradient-to-br p-3 text-white ${tones[tone] || tones.sky}`}>
+          {Icon ? <Icon size={18} /> : null}
         </div>
       </div>
     </div>
   );
 }
-
-const styles = {
-  card: {
-    background: "#FFFFFF",
-    borderRadius: "14px",
-    padding: "22px 24px",
-    boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
-    flex: "1",
-    minWidth: "180px",
-  },
-  top: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  label: {
-    fontSize: "12px",
-    fontWeight: "600",
-    color: "#94A3B8",
-    textTransform: "uppercase",
-    letterSpacing: "0.8px",
-    marginBottom: "8px",
-  },
-  value: {
-    fontSize: "30px",
-    fontWeight: "800",
-    color: "#0F172A",
-    lineHeight: 1,
-  },
-  trend: {
-    fontSize: "11px",
-    marginTop: "6px",
-    fontWeight: "600",
-  },
-  iconBox: {
-    width: "48px",
-    height: "48px",
-    borderRadius: "12px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-};

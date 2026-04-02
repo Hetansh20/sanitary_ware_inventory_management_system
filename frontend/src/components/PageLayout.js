@@ -1,0 +1,90 @@
+import React, { useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
+import Sidebar from "./Sidebar";
+import Navbar from "./Navbar";
+import GlobalSearchModal from "./GlobalSearchModal";
+
+const meta = {
+  "/dashboard": { title: "Dashboard", subtitle: "Inventory and stock performance overview" },
+  "/tiles": { title: "Tiles", subtitle: "Manage SKUs, attributes, and lifecycle status" },
+  "/inventory": { title: "Inventory", subtitle: "Monitor stock levels by warehouse" },
+  "/suppliers": { title: "Suppliers", subtitle: "Supplier contact and profile management" },
+  "/warehouses": { title: "Warehouses", subtitle: "Warehouse list and operations context" },
+  "/orders": { title: "Supplier Orders", subtitle: "Create and track purchase orders" },
+  "/transfers": { title: "Stock Transfers", subtitle: "Move stock between warehouses" },
+  "/users": { title: "Users", subtitle: "Role and access status management" },
+  "/transactions": { title: "Transactions", subtitle: "Audit stock movement history" },
+  "/alerts": { title: "Low Stock Alerts", subtitle: "Critical and warning-level stock alerts" },
+  "/activity": { title: "Activity Logs", subtitle: "Who did what and when" },
+};
+
+export default function PageLayout({ children, onLogout, currentUser, alerts, transactions, searchData, theme, onToggleTheme }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const location = useLocation();
+
+  const pageMeta = useMemo(
+    () => meta[location.pathname] || { title: "Inventory", subtitle: "Operations dashboard" },
+    [location.pathname]
+  );
+
+  const unreadCount = alerts.filter((alert) => alert.status === "open").length;
+
+  const groupedResults = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    const groups = [
+      {
+        type: "Tiles",
+        items: searchData.tiles
+          .filter((tile) => !q || `${tile.name} ${tile.sku}`.toLowerCase().includes(q))
+          .slice(0, 5)
+          .map((tile) => ({ id: tile.id, title: tile.name, subtitle: tile.sku })),
+      },
+      {
+        type: "Suppliers",
+        items: searchData.suppliers
+          .filter((item) => !q || item.name.toLowerCase().includes(q))
+          .slice(0, 5)
+          .map((item) => ({ id: item.id, title: item.name, subtitle: item.contactPerson })),
+      },
+      {
+        type: "Warehouses",
+        items: searchData.warehouses
+          .filter((item) => !q || item.name.toLowerCase().includes(q) || item.location.toLowerCase().includes(q))
+          .slice(0, 5)
+          .map((item) => ({ id: item.id, title: item.name, subtitle: item.location })),
+      },
+    ];
+
+    return groups;
+  }, [searchData, searchQuery]);
+
+  return (
+    <div className="min-h-screen bg-[radial-gradient(circle_at_5%_5%,#e0f2fe_0,#f8fafc_35%,#f8fafc_100%)] text-slate-800 dark:bg-[radial-gradient(circle_at_5%_5%,#082f49_0,#020617_40%,#020617_100%)] dark:text-slate-100">
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onLogout={onLogout} role={currentUser?.role} />
+      <div className="lg:pl-72">
+        <Navbar
+          title={pageMeta.title}
+          subtitle={pageMeta.subtitle}
+          onMenuClick={() => setSidebarOpen((value) => !value)}
+          onOpenSearch={() => setSearchOpen(true)}
+          unreadCount={unreadCount}
+          alerts={alerts.filter((alert) => alert.status === "open")}
+          transactions={transactions}
+          theme={theme}
+          onToggleTheme={onToggleTheme}
+          currentUser={currentUser}
+        />
+        <main className="p-4 md:p-6">{children}</main>
+      </div>
+      <GlobalSearchModal
+        open={searchOpen}
+        query={searchQuery}
+        onQueryChange={setSearchQuery}
+        onClose={() => setSearchOpen(false)}
+        results={groupedResults}
+      />
+    </div>
+  );
+}
