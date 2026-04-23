@@ -16,7 +16,7 @@ export default function GlobalSearchModal({ open, query, onQueryChange, onClose,
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/50 p-4 pt-24 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-slate-900/80 p-4 pt-24">
       <div className="w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl dark:border-slate-700 dark:bg-slate-900">
         <div className="mb-3 flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 dark:border-slate-700">
           <FiSearch className="text-slate-400" />

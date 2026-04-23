@@ -42,20 +42,20 @@ export default function Sidebar({ isOpen, onClose, onLogout, role = "staff" }) {
         <button
           type="button"
           onClick={onClose}
-          className="fixed inset-0 z-30 bg-slate-900/60 backdrop-blur-sm lg:hidden transition-opacity"
+          className="fixed inset-0 z-30 bg-slate-900/80 lg:hidden transition-opacity"
           aria-label="Close sidebar"
         />
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-800/80 bg-slate-950/95 backdrop-blur-xl text-slate-200 shadow-2xl transition-transform duration-300 ${
+        className={`fixed inset-y-0 left-0 z-40 w-72 border-r border-slate-800 bg-slate-900 text-slate-200 shadow-2xl transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
         <div className="flex h-full flex-col p-4">
-          <div className="mb-6 rounded-2xl bg-gradient-to-br from-sky-500/20 to-teal-500/20 border border-white/5 p-5 shadow-inner backdrop-blur-sm">
-            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-sky-400">TileFlow</p>
-            <p className="mt-1 text-xl font-black tracking-tight text-white drop-shadow-md">Inventory Studio</p>
+          <div className="mb-6 rounded-2xl bg-black dark:bg-white border border-slate-700 p-5 shadow-sm text-white dark:text-black">
+            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-300 dark:text-slate-600">SanitaryWareFlow</p>
+            <p className="mt-1 text-xl font-black tracking-tight text-white dark:text-black">Inventory Studio</p>
             <p className="mt-1 text-xs font-semibold text-slate-400">Operational Dashboard</p>
           </div>
 
@@ -71,8 +71,8 @@ export default function Sidebar({ isOpen, onClose, onLogout, role = "staff" }) {
                   className={({ isActive }) =>
                     `group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold transition-all duration-300 ${
                       isActive
-                        ? "bg-gradient-to-r from-sky-500/15 to-indigo-500/10 text-sky-400 border border-sky-500/20 shadow-[inset_0_0_20px_rgba(14,165,233,0.1)]"
-                        : "text-slate-400 hover:bg-slate-900 hover:text-slate-200 border border-transparent"
+                        ? "bg-slate-100 text-black dark:bg-white dark:text-black border border-slate-200 dark:border-white"
+                        : "text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-transparent"
                     }`
                   }
                 >

@@ -1,31 +1,54 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { apiCall } from "../utils/api";
 
 const AuthContext = createContext(null);
 
-const DEMO_USERS = {
-  admin: { id: 1, name: "Admin User", email: "admin@tileflow.com", role: "admin" },
-  staff: { id: 2, name: "Staff User", email: "staff@tileflow.com", role: "staff" },
-};
-
-const CREDENTIALS = {
-  admin: "admin123",
-  staff: "staff123",
-};
-
 export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
 
-  const login = ({ username, password }) => {
-    const normalized = username.trim().toLowerCase();
-    if (!DEMO_USERS[normalized] || CREDENTIALS[normalized] !== password) {
-      return { ok: false, message: "Invalid credentials." };
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+    };
+    const handleDeactivated = (e) => {
+      alert(e.detail || "Your account has been deactivated.");
+      logout();
+    };
+
+    window.addEventListener("auth:unauthorized", handleUnauthorized);
+    window.addEventListener("auth:deactivated", handleDeactivated);
+
+    return () => {
+      window.removeEventListener("auth:unauthorized", handleUnauthorized);
+      window.removeEventListener("auth:deactivated", handleDeactivated);
+    };
+  }, []);
+
+  const login = async ({ username, password }) => {
+    try {
+      const data = await apiCall("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email: username, password }),
+      });
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      
+      setCurrentUser(data.user);
+      return { ok: true, user: data.user };
+    } catch (error) {
+      return { ok: false, message: error.message || "Invalid credentials." };
     }
-
-    setCurrentUser(DEMO_USERS[normalized]);
-    return { ok: true, user: DEMO_USERS[normalized] };
   };
 
-  const logout = () => setCurrentUser(null);
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setCurrentUser(null);
+  };
 
   const value = useMemo(
     () => ({

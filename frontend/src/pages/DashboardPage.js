@@ -102,7 +102,7 @@ export default function DashboardPage({ tiles, inventory, suppliers, warehouses,
                 <YAxis dataKey="name" type="category" tick={{ fill: "#64748b", fontSize: 12, fontWeight: 600 }} axisLine={false} tickLine={false} width={80} />
                 <Tooltip 
                   cursor={{fill: 'rgba(255,255,255,0.05)'}} 
-                  contentStyle={{ background: "rgba(15, 23, 42, 0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: '12px', backdropFilter: 'blur(8px)', color: '#fff', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)' }} 
+                  contentStyle={{ background: "#1e293b", border: "1px solid #334155", borderRadius: '12px', color: '#fff', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }} 
                   itemStyle={{ color: "#38bdf8", fontWeight: 'bold' }} 
                 />
                 <Bar dataKey="value" radius={[0, 6, 6, 0]}>
@@ -124,7 +124,7 @@ export default function DashboardPage({ tiles, inventory, suppliers, warehouses,
                 <YAxis tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={{ stroke: "#475569" }} />
                 <Tooltip 
                   cursor={{fill: 'rgba(255,255,255,0.05)'}} 
-                  contentStyle={{ background: "rgba(15, 23, 42, 0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: '12px', backdropFilter: 'blur(8px)', color: '#fff', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)' }} 
+                  contentStyle={{ background: "#1e293b", border: "1px solid #334155", borderRadius: '12px', color: '#fff', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }} 
                   itemStyle={{ color: "#38bdf8", fontWeight: 'bold' }} 
                 />
                 <Bar dataKey="stockIn" fill="#22c55e" radius={[6, 6, 0, 0]} />
@@ -142,13 +142,12 @@ export default function DashboardPage({ tiles, inventory, suppliers, warehouses,
         </div>
 
         <div className="space-y-6">
-          <div className="relative overflow-hidden rounded-2xl border border-white/40 bg-gradient-to-br from-indigo-500/10 to-purple-500/5 p-5 shadow-lg backdrop-blur-md transition-all dark:border-slate-700/50 dark:bg-slate-900/50">
-            <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-indigo-500/20 blur-3xl" />
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
             <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300">Top Selling Tiles</h3>
             <div className="space-y-3 relative z-10">
               {topSelling.length ? (
                 topSelling.map((item) => (
-                  <div key={item.tileId} className="group flex items-center justify-between rounded-xl bg-white/60 px-4 py-3 shadow-sm backdrop-blur-md transition-all hover:bg-white dark:bg-slate-800/60 dark:hover:bg-slate-800">
+                  <div key={item.tileId} className="group flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 transition-all hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/50 dark:hover:bg-slate-900">
                     <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{item.name}</p>
                     <StatusBadge label={`${item.quantity} units`} tone="info" />
                   </div>
@@ -159,7 +158,7 @@ export default function DashboardPage({ tiles, inventory, suppliers, warehouses,
             </div>
           </div>
 
-          <div className="rounded-2xl border border-white/40 bg-white/60 p-5 shadow-lg backdrop-blur-md transition-all dark:border-slate-700/50 dark:bg-slate-900/50">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-300">Low Stock Alerts</h2>
               <StatusBadge label={`${activeAlerts.length} open`} tone={activeAlerts.length ? "danger" : "success"} />

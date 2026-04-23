@@ -61,7 +61,7 @@ export default function PageLayout({ children, onLogout, currentUser, alerts, tr
   }, [searchData, searchQuery]);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_5%_5%,#e0f2fe_0,#f8fafc_35%,#f8fafc_100%)] text-slate-800 dark:bg-[radial-gradient(circle_at_5%_5%,#082f49_0,#020617_40%,#020617_100%)] dark:text-slate-100">
+    <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onLogout={onLogout} role={currentUser?.role} />
       <div className="lg:pl-72">
         <Navbar

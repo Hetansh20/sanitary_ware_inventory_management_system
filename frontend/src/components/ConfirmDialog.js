@@ -13,7 +13,7 @@ export default function ConfirmDialog({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900">
         <div className="mb-4 flex items-start gap-3">
           <div className="rounded-lg bg-amber-50 p-2 text-amber-600 dark:bg-amber-900/40 dark:text-amber-300">

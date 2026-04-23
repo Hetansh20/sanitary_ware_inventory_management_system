@@ -5,17 +5,6 @@ import LoadingState from "./components/LoadingState";
 import PrivateRoute from "./components/PrivateRoute";
 import { AuthProvider } from "./context/AuthContext";
 import useAuth from "./hooks/useAuth";
-import {
-  seedAlerts,
-  seedInventory,
-  seedOrders,
-  seedSuppliers,
-  seedTiles,
-  seedTransactions,
-  seedTransfers,
-  seedUsers,
-  seedWarehouses,
-} from "./data/seedData";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -32,6 +21,8 @@ const UsersPage = lazy(() => import("./pages/UsersPage"));
 const WarehousesPage = lazy(() => import("./pages/WarehousesPage"));
 const ActivityLogsPage = lazy(() => import("./pages/ActivityLogsPage"));
 
+import { apiCall } from "./utils/api";
+
 export default function App() {
   return (
     <AuthProvider>
@@ -45,20 +36,38 @@ function AppShell() {
   const [booting, setBooting] = useState(true);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
-  const [users, setUsers] = useState(seedUsers);
-  const [tiles, setTiles] = useState(seedTiles);
-  const [warehouses, setWarehouses] = useState(seedWarehouses);
-  const [suppliers, setSuppliers] = useState(seedSuppliers);
-  const [inventory, setInventory] = useState(seedInventory);
-  const [transactions, setTransactions] = useState(seedTransactions);
-  const [transfers, setTransfers] = useState(seedTransfers);
-  const [orders, setOrders] = useState(seedOrders);
-  const [alerts, setAlerts] = useState(seedAlerts);
+  const [users, setUsers] = useState([]);
+  const [tiles, setTiles] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+  const [inventory, setInventory] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [transfers, setTransfers] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [alerts, setAlerts] = useState([]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setBooting(false), 500);
-    return () => clearTimeout(timer);
-  }, []);
+    const fetchInitialData = async () => {
+      try {
+        if (isAuthenticated && canEdit) {
+          const fetchedUsers = await apiCall("/users");
+          setUsers(fetchedUsers.map(u => ({ ...u, id: u._id })));
+        }
+      } catch (e) {
+        console.error("Failed to fetch users", e);
+      } finally {
+        setBooting(false);
+      }
+    };
+    
+    // We only simulate booting timeout if not authenticated, else we wait for fetch.
+    if (!isAuthenticated) {
+      const timer = setTimeout(() => setBooting(false), 500);
+      return () => clearTimeout(timer);
+    } else {
+      fetchInitialData();
+    }
+  }, [isAuthenticated, canEdit]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -67,7 +76,27 @@ function AppShell() {
 
   const searchData = useMemo(() => ({ tiles, suppliers, warehouses }), [tiles, suppliers, warehouses]);
 
-  const saveUser = (user) => setUsers((prev) => upsert(prev, user));
+  const saveUser = async (user) => {
+    try {
+      if (user.id) {
+        const updated = await apiCall(`/users/${user.id}`, {
+          method: "PUT",
+          body: JSON.stringify(user)
+        });
+        setUsers((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
+        toast.success("User updated");
+      } else {
+        const created = await apiCall(`/users`, {
+          method: "POST",
+          body: JSON.stringify(user)
+        });
+        setUsers((prev) => [...prev, created]);
+        toast.success("User created");
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to save user");
+    }
+  };
   const saveTile = (tile) => {
     setTiles((prev) => upsert(prev, tile));
     toast.success("Tile saved successfully");
@@ -93,8 +122,14 @@ function AppShell() {
     toast.success("Order created");
   };
 
-  const toggleUserStatus = (id) => {
-    setUsers((prev) => prev.map((item) => (item.id === id ? { ...item, isActive: !item.isActive } : item)));
+  const toggleUserStatus = async (id) => {
+    try {
+      const updated = await apiCall(`/users/${id}/toggle-status`, { method: "PUT" });
+      setUsers((prev) => prev.map((item) => (item.id === id ? updated : item)));
+      toast.info(`User status toggled`);
+    } catch (e) {
+      toast.error("Failed to toggle status");
+    }
   };
 
   const toggleTileStatus = (id) => {
