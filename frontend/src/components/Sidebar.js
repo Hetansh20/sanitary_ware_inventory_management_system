@@ -59,10 +59,8 @@ export default function Sidebar({ isOpen, onClose, onLogout, role = "staff" }) {
         } lg:translate-x-0`}
       >
         <div className="flex h-full flex-col p-4">
-          <div className="mb-6 rounded-2xl bg-black dark:bg-white border border-slate-700 p-5 shadow-sm text-white dark:text-black">
-            <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-slate-300 dark:text-slate-600">Welcome Ceramic</p>
-            <p className="mt-1 text-xl font-black tracking-tight text-white dark:text-black">Inventory Studio</p>
-            <p className="mt-1 text-xs font-semibold text-slate-400">Operational Dashboard</p>
+          <div className="mb-6 rounded-2xl bg-white p-4 shadow-sm text-center">
+            <img src="/logo.png" alt="Welcome Ceramic" className="mx-auto max-h-20 object-contain" />
           </div>
 
           <nav className="flex-1 space-y-1.5 overflow-y-auto px-1 scrollbar-hide py-2">
@@ -88,6 +86,16 @@ export default function Sidebar({ isOpen, onClose, onLogout, role = "staff" }) {
               );
             })}
           </nav>
+
+          <div className="mt-4 pt-4 border-t border-slate-800 px-1">
+            <button
+              onClick={handleLogout}
+              className="w-full group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold text-rose-500 hover:bg-rose-500/10 transition-all duration-300"
+            >
+              <FiLogOut size={18} className="transition-transform duration-300 group-hover:-translate-x-1" />
+              <span>Sign Out</span>
+            </button>
+          </div>
         </div>
       </aside>
     </>
