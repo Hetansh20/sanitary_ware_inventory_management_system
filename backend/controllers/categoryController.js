@@ -1,4 +1,5 @@
 const Category = require('../models/category');
+const { logAction } = require('../services/auditService');
 
 // Get all categories
 exports.getCategories = async (req, res) => {
@@ -24,6 +25,8 @@ exports.createCategory = async (req, res) => {
     const category = new Category({ name, description });
     await category.save();
     
+    await logAction(req.user.id, 'categories', 'CREATE', category._id, null, category);
+    
     res.status(201).json(category);
   } catch (error) {
     res.status(500).json({ message: 'Server error creating category', error: error.message });
@@ -47,15 +50,18 @@ exports.updateCategory = async (req, res) => {
       }
     }
 
+    const oldCategory = await Category.findById(categoryId);
+    if (!oldCategory) {
+      return res.status(404).json({ message: 'Category not found' });
+    }
+
     const category = await Category.findByIdAndUpdate(
       categoryId,
       { name, description },
       { new: true, runValidators: true }
     );
 
-    if (!category) {
-      return res.status(404).json({ message: 'Category not found' });
-    }
+    await logAction(req.user.id, 'categories', 'UPDATE', category._id, oldCategory, category);
 
     res.json(category);
   } catch (error) {
@@ -71,6 +77,8 @@ exports.deleteCategory = async (req, res) => {
     if (!category) {
       return res.status(404).json({ message: 'Category not found' });
     }
+
+    await logAction(req.user.id, 'categories', 'DELETE', category._id, category, null);
 
     // Ideally, we would also check if any products are using this category before deleting.
     // For this implementation, we will just delete it.

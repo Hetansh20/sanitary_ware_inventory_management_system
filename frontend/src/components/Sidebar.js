@@ -13,6 +13,8 @@ import {
   FiActivity,
   FiLayers,
   FiClock,
+  FiPieChart,
+  FiShield,
 } from "react-icons/fi";
 
 const navItems = [
@@ -27,6 +29,8 @@ const navItems = [
   { path: "/users", label: "Users", icon: FiUsers, roles: ["admin"] },
   { path: "/transactions", label: "Transactions", icon: FiActivity, roles: ["admin", "staff"] },
   { path: "/alerts", label: "Alerts", icon: FiAlertTriangle, roles: ["admin", "staff"] },
+  { path: "/reports", label: "Reports", icon: FiPieChart, roles: ["admin", "staff"] },
+  { path: "/audit-logs", label: "Audit Logs", icon: FiShield, roles: ["admin"] },
   { path: "/activity", label: "Activity Logs", icon: FiClock, roles: ["admin", "staff"] },
 ];
 

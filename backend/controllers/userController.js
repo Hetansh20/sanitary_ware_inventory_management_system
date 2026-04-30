@@ -1,5 +1,6 @@
 const User = require('../models/user')
 const bcrypt = require('bcryptjs')
+const { logAction } = require('../services/auditService');
 
 const getAllUsers = async (req, res) => {
   try {
@@ -15,8 +16,16 @@ const toggleUserStatus = async (req, res) => {
     const user = await User.findById(req.params.id)
 
     if (user) {
+      const oldState = JSON.parse(JSON.stringify(user))
+      
       user.isActive = !user.isActive
       const updatedUser = await user.save()
+      
+      const safeOldState = { ...oldState, password: '[REDACTED]' };
+      const safeNewState = { ...JSON.parse(JSON.stringify(updatedUser)), password: '[REDACTED]' };
+      
+      await logAction(req.user.id, 'users', 'UPDATE', updatedUser._id, safeOldState, safeNewState);
+      
       res.json({
         id: updatedUser._id,
         name: updatedUser.name,
@@ -53,6 +62,9 @@ const createUser = async (req, res) => {
       permissions: permissions || []
     })
 
+    const safeNewState = { ...JSON.parse(JSON.stringify(user)), password: '[REDACTED]' };
+    await logAction(req.user.id, 'users', 'CREATE', user._id, null, safeNewState);
+
     res.status(201).json({
       id: user._id,
       name: user.name,
@@ -71,6 +83,8 @@ const updateUser = async (req, res) => {
     const user = await User.findById(req.params.id)
 
     if (user) {
+      const oldState = JSON.parse(JSON.stringify(user))
+      
       user.name = req.body.name || user.name
       user.email = req.body.email || user.email
       user.role = req.body.role || user.role
@@ -86,6 +100,11 @@ const updateUser = async (req, res) => {
       }
 
       const updatedUser = await user.save()
+      
+      const safeOldState = { ...oldState, password: '[REDACTED]' };
+      const safeNewState = { ...JSON.parse(JSON.stringify(updatedUser)), password: '[REDACTED]' };
+      
+      await logAction(req.user.id, 'users', 'UPDATE', updatedUser._id, safeOldState, safeNewState);
       
       res.json({
         id: updatedUser._id,
