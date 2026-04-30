@@ -425,11 +425,7 @@ function AppShell() {
                           saveOrder={saveOrder}
                           updateOrderStatus={updateOrderStatus}
                           receiveItems={receiveItems}
-<<<<<<< HEAD
-                          canEdit={canEdit}
-=======
                           canEdit={canManageOrders}
->>>>>>> tirth
                         />
                       }
                     />
