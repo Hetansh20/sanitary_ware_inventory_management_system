@@ -33,7 +33,7 @@ export default function App() {
 }
 
 function AppShell() {
-  const { currentUser, isAuthenticated, login, logout, canEdit, canDoTransactions } = useAuth();
+  const { currentUser, isAuthenticated, login, logout, canManageUsers, canManageProducts, canManageCategories, canManageSuppliers, canManageWarehouses, canManageTransfers, canManageOrders, canDoTransactions } = useAuth();
   const [booting, setBooting] = useState(true);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
 
@@ -54,13 +54,14 @@ function AppShell() {
         if (isAuthenticated) {
           const [fetchedUsers, fetchedProducts, fetchedCategories, fetchedMovements, fetchedSuppliers, fetchedOrders] = await Promise.all([
             canEdit ? apiCall("/users").catch(()=>[]) : Promise.resolve([]),
+            canManageUsers ? apiCall("/users").catch(()=>[]) : Promise.resolve([]),
             apiCall("/products").catch(()=>[]),
             apiCall("/categories").catch(()=>[]),
             apiCall("/movements").catch(()=>[]),
             apiCall("/suppliers").catch(()=>[]),
             apiCall("/orders").catch(()=>[])
           ]);
-          if (canEdit) setUsers(fetchedUsers.map(u => ({ ...u, id: u._id })));
+          if (canManageUsers) setUsers(fetchedUsers.map(u => ({ ...u, id: u._id })));
           setProducts(fetchedProducts.map(p => ({ ...p, id: p._id })));
           setCategories(fetchedCategories.map(c => ({ ...c, id: c._id })));
           setMovements(fetchedMovements.map(m => ({ ...m, id: m._id })));
@@ -81,7 +82,7 @@ function AppShell() {
     } else {
       fetchInitialData();
     }
-  }, [isAuthenticated, canEdit]);
+  }, [isAuthenticated, canManageUsers]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -346,7 +347,7 @@ function AppShell() {
                       path="/users"
                       element={
                         <PrivateRoute allowedRoles={["admin"]}>
-                          <UsersPage users={users} saveUser={saveUser} toggleUserStatus={toggleUserStatus} canEdit={canEdit} />
+                          <UsersPage users={users} saveUser={saveUser} toggleUserStatus={toggleUserStatus} canEdit={canManageUsers} />
                         </PrivateRoute>
                       }
                     />
@@ -357,7 +358,7 @@ function AppShell() {
                           categories={categories}
                           saveCategory={saveCategory}
                           deleteCategory={deleteCategory}
-                          canEdit={canEdit}
+                          canEdit={canManageCategories}
                         />
                       }
                     />
@@ -370,12 +371,12 @@ function AppShell() {
                           suppliers={suppliers}
                           saveProduct={saveProduct}
                           toggleProductStatus={toggleProductStatus}
-                          canEdit={canEdit}
+                          canEdit={canManageProducts}
                         />
                       }
                     />
-                    <Route path="/warehouses" element={<WarehousesPage warehouses={warehouses} saveWarehouse={saveWarehouse} canEdit={canEdit} />} />
-                    <Route path="/suppliers" element={<SuppliersPage suppliers={suppliers} saveSupplier={saveSupplier} canEdit={canEdit} />} />
+                    <Route path="/warehouses" element={<WarehousesPage warehouses={warehouses} saveWarehouse={saveWarehouse} canEdit={canManageWarehouses} />} />
+                    <Route path="/suppliers" element={<SuppliersPage suppliers={suppliers} saveSupplier={saveSupplier} canEdit={canManageSuppliers} />} />
                     <Route
                       path="/inventory"
                       element={
@@ -383,7 +384,7 @@ function AppShell() {
                           inventory={inventory}
                           tiles={products}
                           warehouses={warehouses}
-                          canEdit={canEdit}
+                          canEdit={canManageProducts}
                           bulkInventoryUpdate={bulkInventoryUpdate}
                         />
                       }
@@ -408,7 +409,7 @@ function AppShell() {
                           tiles={products}
                           saveTransfer={saveTransfer}
                           updateTransferStatus={updateTransferStatus}
-                          canEdit={canEdit}
+                          canEdit={canManageTransfers}
                         />
                       }
                     />
@@ -422,11 +423,15 @@ function AppShell() {
                           saveOrder={saveOrder}
                           updateOrderStatus={updateOrderStatus}
                           receiveItems={receiveItems}
+<<<<<<< HEAD
                           canEdit={canEdit}
+=======
+                          canEdit={canManageOrders}
+>>>>>>> tirth
                         />
                       }
                     />
-                    <Route path="/alerts" element={<AlertsPage alerts={alerts} tiles={products} warehouses={warehouses} resolveAlert={resolveAlert} canEdit={canEdit} />} />
+                    <Route path="/alerts" element={<AlertsPage alerts={alerts} tiles={products} warehouses={warehouses} resolveAlert={resolveAlert} canEdit={canManageProducts} />} />
                     <Route path="/activity" element={<ActivityLogsPage transactions={movements} />} />
                     <Route path="*" element={<Navigate to="/dashboard" replace />} />
                   </Routes>
