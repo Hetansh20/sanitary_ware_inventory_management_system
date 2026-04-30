@@ -1,4 +1,5 @@
 const User = require('../models/user')
+const { logAudit } = require('../services/auditService')
 const bcrypt = require('bcryptjs')
 
 const getAllUsers = async (req, res) => {
@@ -15,8 +16,19 @@ const toggleUserStatus = async (req, res) => {
     const user = await User.findById(req.params.id)
 
     if (user) {
+      const beforeState = JSON.parse(JSON.stringify(user))
       user.isActive = !user.isActive
       const updatedUser = await user.save()
+
+      await logAudit({
+        userId: req.user.id,
+        module: 'User',
+        action: 'UPDATE',
+        recordId: updatedUser._id,
+        beforeState,
+        afterState: updatedUser
+      })
+
       res.json({
         id: updatedUser._id,
         name: updatedUser.name,
@@ -51,6 +63,14 @@ const createUser = async (req, res) => {
       role: role || 'staff',
       isActive: isActive !== undefined ? isActive : true,
       permissions: permissions || []
+    })
+
+    await logAudit({
+      userId: req.user.id,
+      module: 'User',
+      action: 'CREATE',
+      recordId: user._id,
+      afterState: user
     })
 
     res.status(201).json({

@@ -1,4 +1,5 @@
-const Category = require('../models/category');
+const Category = require('../models/category')
+const { logAudit } = require('../services/auditService');
 
 // Get all categories
 exports.getCategories = async (req, res) => {
@@ -21,9 +22,16 @@ exports.createCategory = async (req, res) => {
       return res.status(400).json({ message: 'Category with this name already exists' });
     }
 
-    const category = new Category({ name, description });
-    await category.save();
-    
+    const category = await Category.create({ name, description })
+
+    await logAudit({
+      userId: req.user.id,
+      module: 'Category',
+      action: 'CREATE',
+      recordId: category._id,
+      afterState: category
+    })
+
     res.status(201).json(category);
   } catch (error) {
     res.status(500).json({ message: 'Server error creating category', error: error.message });
@@ -47,17 +55,28 @@ exports.updateCategory = async (req, res) => {
       }
     }
 
-    const category = await Category.findByIdAndUpdate(
-      categoryId,
-      { name, description },
-      { new: true, runValidators: true }
-    );
-
+    const category = await Category.findById(categoryId);
     if (!category) {
       return res.status(404).json({ message: 'Category not found' });
     }
 
-    res.json(category);
+    const beforeState = JSON.parse(JSON.stringify(category))
+    
+    category.name = name || category.name
+    category.description = description !== undefined ? description : category.description
+
+    const updatedCategory = await category.save()
+
+    await logAudit({
+      userId: req.user.id,
+      module: 'Category',
+      action: 'UPDATE',
+      recordId: updatedCategory._id,
+      beforeState,
+      afterState: updatedCategory
+    })
+
+    res.json(updatedCategory)
   } catch (error) {
     res.status(500).json({ message: 'Server error updating category', error: error.message });
   }
@@ -66,15 +85,24 @@ exports.updateCategory = async (req, res) => {
 // Delete a category
 exports.deleteCategory = async (req, res) => {
   try {
-    const category = await Category.findByIdAndDelete(req.params.id);
+    const category = await Category.findById(req.params.id);
     
     if (!category) {
       return res.status(404).json({ message: 'Category not found' });
     }
 
-    // Ideally, we would also check if any products are using this category before deleting.
-    // For this implementation, we will just delete it.
-    res.json({ message: 'Category deleted successfully' });
+    const beforeState = JSON.parse(JSON.stringify(category))
+    await category.deleteOne()
+    
+    await logAudit({
+      userId: req.user.id,
+      module: 'Category',
+      action: 'DELETE',
+      recordId: req.params.id,
+      beforeState
+    })
+
+    res.json({ message: 'Category removed' })
   } catch (error) {
     res.status(500).json({ message: 'Server error deleting category', error: error.message });
   }
