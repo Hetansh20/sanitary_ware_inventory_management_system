@@ -82,11 +82,8 @@ const updateOrderStatus = async (req, res) => {
 
 // Expects body: { items: [{ lineId: "...", quantity: 10 }] }
 const receiveItems = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
-    const order = await PurchaseOrder.findById(req.params.id).session(session);
+    const order = await PurchaseOrder.findById(req.params.id);
     if (!order) {
       return res.status(404).json({ message: 'Order not found' });
     }
@@ -111,9 +108,9 @@ const receiveItems = async (req, res) => {
         throw new Error(`Line item ${item.lineId} not found in this order`);
       }
 
-      // Check if we are over-receiving (optional, but good practice)
+      // Check if we are over-receiving
       if (line.receivedQuantity + item.quantity > line.orderedQuantity) {
-        throw new Error(`Cannot receive more than ordered for product ${line.product}`);
+        throw new Error(`Cannot receive more than ordered for line item`);
       }
 
       // 1. Update PO Line
@@ -121,19 +118,19 @@ const receiveItems = async (req, res) => {
       itemsReceivedThisTime += item.quantity;
 
       // 2. Update Product Inventory
-      const product = await Product.findById(line.product).session(session);
+      const product = await Product.findById(line.product);
       if (!product) throw new Error(`Product ${line.product} not found`);
       product.currentQuantity += item.quantity;
-      await product.save({ session });
+      await product.save();
 
       // 3. Create StockMovement Ledger Entry
-      await StockMovement.create([{
+      await StockMovement.create({
         product: line.product,
         type: 'IN',
         quantity: item.quantity,
         reason: `PO-${order._id} Received`,
         performedBy: req.user.id
-      }], { session });
+      });
     }
 
     if (itemsReceivedThisTime === 0) {
@@ -154,13 +151,10 @@ const receiveItems = async (req, res) => {
       order.status = 'Partially Received';
     }
 
-    await order.save({ session });
+    await order.save();
     
-    await logAction(req.user.id, 'orders', 'UPDATE', order._id, oldState, order, session);
+    await logAction(req.user.id, 'orders', 'UPDATE', order._id, oldState, order);
     
-    await session.commitTransaction();
-    session.endSession();
-
     const populatedOrder = await PurchaseOrder.findById(order._id)
       .populate('supplier', 'name')
       .populate('createdBy', 'name')
@@ -168,8 +162,6 @@ const receiveItems = async (req, res) => {
 
     res.json(populatedOrder);
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
     res.status(400).json({ message: error.message });
   }
 };

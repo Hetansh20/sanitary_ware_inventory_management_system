@@ -249,35 +249,101 @@ export default function OrdersPage({ orders, suppliers, tiles, saveOrder, update
 
       {/* RECEIVE MODAL */}
       {receiveForm && (
-        <FormModal isOpen={isReceiveModalOpen} title="Receive PO Items" onClose={() => setReceiveModalOpen(false)}>
-          <form className="grid gap-4" onSubmit={submitReceive}>
-            <p className="text-sm text-slate-600 mb-2">Specify the quantities that arrived at the loading dock. This will instantly update your product stock!</p>
-            <div className="space-y-3">
+        <FormModal 
+          isOpen={isReceiveModalOpen} 
+          title="Receive PO Items" 
+          onClose={() => setReceiveModalOpen(false)}
+        >
+          <form className="space-y-6" onSubmit={submitReceive}>
+            <div>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                Specify the quantities that arrived at the loading dock. This will instantly update your product stock and create transaction records.
+              </p>
+            </div>
+
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200">
               {receiveForm.itemsToReceive.map((item, idx) => (
-                <div key={idx} className="flex gap-4 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
-                  <div className="flex-1">
-                    <p className="font-semibold text-sm">{item.productName}</p>
-                    <p className="text-xs text-slate-500">Ordered: {item.ordered} | Rcvd: {item.alreadyReceived} | Rem: {item.ordered - item.alreadyReceived}</p>
+                <div 
+                  key={idx} 
+                  className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:border-indigo-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+                >
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                    <div className="flex-1 space-y-1">
+                      <h4 className="text-base font-black text-slate-800 dark:text-slate-100">
+                        {item.productName}
+                      </h4>
+                      <div className="flex flex-wrap gap-x-4 gap-y-1">
+                        <div className="flex items-center gap-1 text-xs font-bold text-slate-500">
+                          <span className="uppercase tracking-wider">Ordered:</span>
+                          <span className="text-slate-700 dark:text-slate-300">{item.ordered}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs font-bold text-slate-500">
+                          <span className="uppercase tracking-wider">Received:</span>
+                          <span className="text-emerald-600">{item.alreadyReceived}</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs font-bold text-slate-500">
+                          <span className="uppercase tracking-wider">Remaining:</span>
+                          <span className="text-indigo-600">{item.ordered - item.alreadyReceived}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="w-full sm:w-32">
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
+                        Receive Now
+                      </label>
+                      <div className="relative">
+                        <input 
+                          type="number" 
+                          min={0} 
+                          max={item.ordered - item.alreadyReceived} 
+                          value={item.receiveNow} 
+                          onChange={(e) => updateReceiveAmount(idx, e.target.value)} 
+                          className="w-full rounded-xl border-2 border-slate-100 bg-slate-50 px-3 py-2.5 text-sm font-black text-indigo-600 focus:border-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-800 dark:bg-slate-800 dark:text-indigo-400" 
+                        />
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400 pointer-events-none">
+                          PCS
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="w-32">
-                    <label className="grid gap-1 text-xs font-semibold text-slate-700">
-                      Receive Now
-                      <input 
-                        type="number" 
-                        min={0} 
-                        max={item.ordered - item.alreadyReceived} 
-                        value={item.receiveNow} 
-                        onChange={(e) => updateReceiveAmount(idx, e.target.value)} 
-                        className="rounded-lg border border-sky-500 px-2 py-2 text-sm font-bold focus:ring focus:ring-sky-200" 
-                      />
-                    </label>
+                  
+                  {/* Progress bar for this line item */}
+                  <div className="mt-4 h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    <div 
+                      className="h-full bg-indigo-500 transition-all duration-500" 
+                      style={{ 
+                        width: `${Math.min(100, (item.alreadyReceived / item.ordered) * 100)}%` 
+                      }}
+                    />
+                    <div 
+                      className="h-full bg-emerald-400/50 -mt-1.5 transition-all duration-500" 
+                      style={{ 
+                        width: `${Math.min(100, ((item.alreadyReceived + item.receiveNow) / item.ordered) * 100)}%` 
+                      }}
+                    />
                   </div>
                 </div>
               ))}
             </div>
-            <div className="flex justify-end gap-2 mt-4">
-              <button type="button" onClick={() => setReceiveModalOpen(false)} className="rounded-lg border border-slate-200 px-4 py-2">Cancel</button>
-              <button type="submit" className="rounded-lg bg-emerald-600 px-4 py-2 font-bold text-white shadow-sm">Receive to Inventory</button>
+
+            <div className="flex items-center justify-between border-t border-slate-100 pt-6 dark:border-slate-800">
+              <button 
+                type="button" 
+                onClick={() => setReceiveModalOpen(false)} 
+                className="rounded-xl px-6 py-3 text-sm font-bold text-slate-500 transition hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                className="group relative flex items-center gap-2 overflow-hidden rounded-xl bg-indigo-600 px-8 py-3 text-sm font-black text-white shadow-lg shadow-indigo-200 transition-all hover:bg-indigo-700 hover:shadow-indigo-300 active:scale-95 dark:shadow-none"
+              >
+                <span>Complete Reception</span>
+                <svg className="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </button>
             </div>
           </form>
         </FormModal>

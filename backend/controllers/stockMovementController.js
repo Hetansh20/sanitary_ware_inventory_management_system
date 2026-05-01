@@ -6,9 +6,6 @@ const mongoose = require('mongoose');
 // @route   POST /api/movements
 // @access  Private (Admin or Staff with 'inventory' permission)
 const recordMovement = async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     const { product, type, quantity, reason } = req.body;
 
@@ -29,41 +26,36 @@ const recordMovement = async (req, res) => {
     }
 
     // Check if product exists
-    const existingProduct = await Product.findById(product).session(session);
+    const existingProduct = await Product.findById(product);
     if (!existingProduct) {
       return res.status(404).json({ message: 'Product not found' });
     }
 
-    // Prevent stock going below 0 (unless we explicitly allow negative stock, but usually not)
+    // Prevent stock going below 0
     if (existingProduct.currentQuantity + delta < 0) {
       return res.status(400).json({ message: 'Movement would cause negative stock' });
     }
 
     // Create the movement
-    const movement = await StockMovement.create([{
+    const movement = await StockMovement.create({
       product,
       type,
-      quantity: delta, // We store the actual delta value used for easy aggregation later
+      quantity: delta,
       reason,
       performedBy: req.user.id
-    }], { session });
+    });
 
-    // Update the product quantity atomically
+    // Update the product quantity
     existingProduct.currentQuantity += delta;
-    await existingProduct.save({ session });
-
-    await session.commitTransaction();
-    session.endSession();
+    await existingProduct.save();
 
     // Populate for response
-    const populatedMovement = await StockMovement.findById(movement[0]._id)
+    const populatedMovement = await StockMovement.findById(movement._id)
       .populate('product', 'name sku')
       .populate('performedBy', 'name email');
 
     res.status(201).json(populatedMovement);
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
     res.status(500).json({ message: error.message });
   }
 };
