@@ -55,7 +55,6 @@ function AppShell() {
       try {
         if (isAuthenticated) {
           const [fetchedUsers, fetchedProducts, fetchedCategories, fetchedMovements, fetchedSuppliers, fetchedOrders] = await Promise.all([
-            canEdit ? apiCall("/users").catch(()=>[]) : Promise.resolve([]),
             canManageUsers ? apiCall("/users").catch(()=>[]) : Promise.resolve([]),
             apiCall("/products").catch(()=>[]),
             apiCall("/categories").catch(()=>[]),

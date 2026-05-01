@@ -58,7 +58,7 @@ exports.updateCategory = async (req, res) => {
     const category = await Category.findByIdAndUpdate(
       categoryId,
       { name, description },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     );
 
     await logAction(req.user.id, 'categories', 'UPDATE', category._id, oldCategory, category);

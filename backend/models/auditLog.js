@@ -29,17 +29,16 @@ const auditLogSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Ensure immutability at the schema level (append-only)
-auditLogSchema.pre('save', function(next) {
+auditLogSchema.pre('save', function() {
   if (!this.isNew) {
-    return next(new Error('Audit logs cannot be modified'));
+    throw new Error('Audit logs cannot be modified');
   }
-  next();
 });
-auditLogSchema.pre('updateOne', function(next) { next(new Error('Audit logs cannot be modified')); });
-auditLogSchema.pre('updateMany', function(next) { next(new Error('Audit logs cannot be modified')); });
-auditLogSchema.pre('findOneAndUpdate', function(next) { next(new Error('Audit logs cannot be modified')); });
-auditLogSchema.pre('deleteOne', function(next) { next(new Error('Audit logs cannot be deleted')); });
-auditLogSchema.pre('deleteMany', function(next) { next(new Error('Audit logs cannot be deleted')); });
-auditLogSchema.pre('findOneAndDelete', function(next) { next(new Error('Audit logs cannot be deleted')); });
+auditLogSchema.pre('updateOne', function() { throw new Error('Audit logs cannot be modified'); });
+auditLogSchema.pre('updateMany', function() { throw new Error('Audit logs cannot be modified'); });
+auditLogSchema.pre('findOneAndUpdate', function() { throw new Error('Audit logs cannot be modified'); });
+auditLogSchema.pre('deleteOne', function() { throw new Error('Audit logs cannot be deleted'); });
+auditLogSchema.pre('deleteMany', function() { throw new Error('Audit logs cannot be deleted'); });
+auditLogSchema.pre('findOneAndDelete', function() { throw new Error('Audit logs cannot be deleted'); });
 
 module.exports = mongoose.model('AuditLog', auditLogSchema);

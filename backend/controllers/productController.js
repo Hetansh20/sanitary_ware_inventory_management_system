@@ -73,7 +73,7 @@ exports.updateProduct = async (req, res) => {
     const product = await Product.findByIdAndUpdate(
       productId,
       { name, sku, category, supplier, unitOfMeasure, lowStockThreshold, costPrice, description, imageUrl, size },
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     ).populate('category', 'name description');
 
     await logAction(req.user.id, 'products', 'UPDATE', product._id, oldProduct, product);
@@ -95,7 +95,7 @@ exports.deleteProduct = async (req, res) => {
     const product = await Product.findByIdAndUpdate(
       req.params.id,
       { isActive: false },
-      { new: true }
+      { returnDocument: 'after' }
     ).populate('category', 'name description');
     
     await logAction(req.user.id, 'products', 'DELETE', product._id, oldProduct, product);
