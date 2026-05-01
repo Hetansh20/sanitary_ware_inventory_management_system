@@ -22,7 +22,7 @@ const meta = {
   "/activity": { title: "Activity Logs", subtitle: "Who did what and when" },
 };
 
-export default function PageLayout({ children, onLogout, currentUser, alerts, transactions, searchData, theme, onToggleTheme }) {
+export default function PageLayout({ children, onLogout, currentUser, alerts, transactions, searchData, theme, onToggleTheme, onProfileClick, onSettingsClick }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -92,6 +92,8 @@ export default function PageLayout({ children, onLogout, currentUser, alerts, tr
           transactions={transactions}
           theme={theme}
           onToggleTheme={onToggleTheme}
+          onProfileClick={onProfileClick}
+          onSettingsClick={onSettingsClick}
           currentUser={currentUser}
         />
         <main className="p-4 md:p-6">{children}</main>
