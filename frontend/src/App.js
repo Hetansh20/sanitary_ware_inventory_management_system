@@ -63,13 +63,14 @@ function AppShell() {
     const fetchInitialData = async () => {
       try {
         if (isAuthenticated) {
-          const [fetchedUsers, fetchedProducts, fetchedCategories, fetchedMovements, fetchedSuppliers, fetchedOrders] = await Promise.all([
+          const [fetchedUsers, fetchedProducts, fetchedCategories, fetchedMovements, fetchedSuppliers, fetchedOrders, fetchedWarehouses] = await Promise.all([
             canManageUsers ? apiCall("/users").catch(()=>[]) : Promise.resolve([]),
             apiCall("/products").catch(()=>[]),
             apiCall("/categories").catch(()=>[]),
             apiCall("/movements").catch(()=>[]),
             apiCall("/suppliers").catch(()=>[]),
-            apiCall("/orders").catch(()=>[])
+            apiCall("/orders").catch(()=>[]),
+            apiCall("/warehouses").catch(()=>[])
           ]);
           if (canManageUsers) setUsers(fetchedUsers.map(u => ({ ...u, id: u._id })));
           setProducts(fetchedProducts.map(p => ({ ...p, id: p._id })));
@@ -77,6 +78,7 @@ function AppShell() {
           setMovements(fetchedMovements.map(m => ({ ...m, id: m._id })));
           setSuppliers(fetchedSuppliers.map(s => ({ ...s, id: s._id })));
           setOrders(fetchedOrders.map(o => ({ ...o, id: o._id })));
+          setWarehouses(fetchedWarehouses.map(w => ({ ...w, id: w._id })));
         }
       } catch (e) {
         console.error("Failed to fetch initial data", e);
@@ -190,9 +192,26 @@ function AppShell() {
       toast.error(error.message || "Failed to save supplier");
     }
   };
-  const saveWarehouse = (warehouse) => {
-    setWarehouses((prev) => upsert(prev, warehouse));
-    toast.success("Warehouse saved successfully");
+  const saveWarehouse = async (warehouse) => {
+    try {
+      if (warehouse.id) {
+        const updated = await apiCall(`/warehouses/${warehouse.id}`, {
+          method: "PUT",
+          body: JSON.stringify(warehouse)
+        });
+        setWarehouses((prev) => prev.map((item) => (item.id === updated._id ? { ...updated, id: updated._id } : item)));
+        toast.success("Warehouse updated successfully");
+      } else {
+        const created = await apiCall(`/warehouses`, {
+          method: "POST",
+          body: JSON.stringify(warehouse)
+        });
+        setWarehouses((prev) => [...prev, { ...created, id: created._id }]);
+        toast.success("Warehouse created successfully");
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to save warehouse");
+    }
   };
   const saveMovement = async (movement) => {
     try {
