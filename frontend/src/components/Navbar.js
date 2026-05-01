@@ -29,19 +29,6 @@ export default function Navbar({
         .slice(0, 5),
     [transactions]
   );
-
-  const recentTransactions = useMemo(() => {
-    if (!transactions) return [];
-    return [...transactions]
-      .sort((a, b) => {
-        const dateA = a.createdAt || a.date || "";
-        const dateB = b.createdAt || b.date || "";
-        return dateB.localeCompare(dateA);
-      })
-      .slice(0, 5);
-  }, [transactions]);
-
-
   // Note: For full logout context, we will trigger page refresh or we expect the app layer to handle it.
   const handleLogout = () => {
     // Rely on Sidebar logout or add onLogout prop to Navbar. 
