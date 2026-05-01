@@ -106,7 +106,7 @@ function AppShell() {
           if (canManageUsers) setUsers(fetchedUsers.map(u => ({ ...u, id: u._id })));
           setProducts(fetchedProducts.map(p => ({ ...p, id: p._id })));
           setCategories(fetchedCategories.map(c => ({ ...c, id: c._id })));
-          setMovements(fetchedMovements.map(m => ({ ...m, id: m._id })));
+          setMovements(fetchedMovements.map(normalizeMovement));
           setSuppliers(fetchedSuppliers.map(s => ({ ...s, id: s._id })));
           setOrders(fetchedOrders.map(o => ({ ...o, id: o._id })));
           setWarehouses(fetchedWarehouses.map(w => ({ ...w, id: w._id })));
@@ -250,7 +250,7 @@ function AppShell() {
         method: "POST",
         body: JSON.stringify(movement)
       });
-      setMovements((prev) => [created, ...prev]);
+      setMovements((prev) => [normalizeMovement(created), ...prev]);
       
       // Also update the local product quantity so UI reflects it immediately
       setProducts(prev => prev.map(p => {
@@ -322,7 +322,7 @@ function AppShell() {
         apiCall("/movements").catch(()=>[])
       ]);
       setProducts(newProducts.map(p => ({ ...p, id: p._id })));
-      setMovements(newMovements.map(m => ({ ...m, id: m._id })));
+      setMovements(newMovements.map(normalizeMovement));
 
       toast.success("Items received and inventory updated");
     } catch (e) {
@@ -538,6 +538,16 @@ function AppShell() {
       <ToastContainer position="top-right" autoClose={2500} newestOnTop theme={theme === "dark" ? "dark" : "light"} />
     </Router>
   );
+}
+
+function normalizeMovement(movement) {
+  const productId = movement.product?._id || movement.product?.id || movement.product;
+  return {
+    ...movement,
+    id: movement._id || movement.id,
+    tileId: productId,
+    date: movement.createdAt || movement.date || new Date().toISOString(),
+  };
 }
 
 function upsert(items, candidate) {
