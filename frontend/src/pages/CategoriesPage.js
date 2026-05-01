@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import DataTable from "../components/DataTable";
 import FormModal from "../components/FormModal";
 import PermissionBanner from "../components/PermissionBanner";
 import Button from "../components/Button";
+import SearchBar from "../components/SearchBar";
+import useDebounce from "../hooks/useDebounce";
 
 const defaultForm = { name: "", description: "" };
 
@@ -11,6 +13,15 @@ export default function CategoriesPage({ categories, saveCategory, deleteCategor
   const [editingCategory, setEditingCategory] = useState(null);
   const [form, setForm] = useState(defaultForm);
   const [errors, setErrors] = useState({});
+  const [query, setQuery] = useState("");
+  const debouncedQuery = useDebounce(query, 250);
+
+  const filtered = useMemo(() => {
+    return categories.filter((c) => 
+      c.name.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+      (c.description && c.description.toLowerCase().includes(debouncedQuery.toLowerCase()))
+    );
+  }, [categories, debouncedQuery]);
 
   const columns = [
     { key: "name", header: "Name", render: (row) => <p className="font-semibold">{row.name}</p> },
@@ -82,7 +93,8 @@ export default function CategoriesPage({ categories, saveCategory, deleteCategor
     <div className="space-y-4">
       {!canEdit ? <PermissionBanner message="Staff role: view-only category access." /> : null}
 
-      <div className="flex justify-end gap-2">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <SearchBar value={query} onChange={setQuery} placeholder="Search categories..." />
         <Button variant="primary" disabled={!canEdit} onClick={openCreateModal}>
           Add Category
         </Button>
@@ -90,7 +102,7 @@ export default function CategoriesPage({ categories, saveCategory, deleteCategor
 
       <DataTable
         columns={columns}
-        data={categories}
+        data={filtered}
         emptyTitle="No categories found"
       />
 

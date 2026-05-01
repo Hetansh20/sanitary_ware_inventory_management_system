@@ -172,7 +172,7 @@ export default function ProductsPage({
       />
 
       <FormModal isOpen={isModalOpen} title={editingProduct ? "Edit Product" : "Add New Item"} onClose={() => setModalOpen(false)}>
-        <form className="grid grid-cols-1 gap-4 md:grid-cols-2" onSubmit={submit}>
+        <form className="grid grid-cols-1 gap-4 md:grid-cols-2 overflow-visible" onSubmit={submit}>
           <div className="md:col-span-2">
             <label className="block text-sm font-semibold text-slate-700 mb-1">Add Photo</label>
             <div className="flex items-center gap-4">
