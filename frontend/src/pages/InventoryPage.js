@@ -28,19 +28,23 @@ export default function InventoryPage() {
     setLoading(true);
     try {
       const [invRes, prodRes, whRes, sumRes, lowRes] = await Promise.all([
-        apiCall("/inventory"),
-        apiCall("/products"),
-        apiCall("/warehouses"),
-        apiCall("/inventory/summary"),
-        apiCall("/inventory/low-stock"),
+        apiCall("/inventory").catch(() => []),
+        apiCall("/products").catch(() => []),
+        apiCall("/warehouses").catch(() => []),
+        apiCall("/inventory/summary").catch(() => null),
+        apiCall("/inventory/low-stock").catch(() => []),
       ]);
-      setInventories(invRes);
-      setProducts(prodRes);
-      setWarehouses(whRes);
+      setInventories(Array.isArray(invRes) ? invRes : []);
+      setProducts(Array.isArray(prodRes) ? prodRes : []);
+      setWarehouses(Array.isArray(whRes) ? whRes : []);
       setSummary(sumRes);
-      setLowStockItems(lowRes);
+      setLowStockItems(Array.isArray(lowRes) ? lowRes : []);
     } catch (error) {
       toast.error(error.message);
+      setInventories([]);
+      setProducts([]);
+      setWarehouses([]);
+      setLowStockItems([]);
     } finally {
       setLoading(false);
     }
@@ -48,12 +52,16 @@ export default function InventoryPage() {
 
   // Filter inventories
   const filteredInventories = useMemo(() => {
+    if (!Array.isArray(inventories)) {
+      return [];
+    }
+    
     let filtered = inventories;
     if (filterWarehouse) {
-      filtered = filtered.filter((inv) => inv.warehouse._id === filterWarehouse);
+      filtered = filtered.filter((inv) => inv?.warehouse?.id === filterWarehouse);
     }
     if (filterProduct) {
-      filtered = filtered.filter((inv) => inv.product._id === filterProduct);
+      filtered = filtered.filter((inv) => inv?.product?.id === filterProduct);
     }
     return filtered;
   }, [inventories, filterWarehouse, filterProduct]);
@@ -193,15 +201,15 @@ export default function InventoryPage() {
       )}
 
       {/* Low Stock Alert */}
-      {lowStockItems.length > 0 && (
+      {Array.isArray(lowStockItems) && lowStockItems.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <h3 className="font-semibold text-red-800 mb-3">⚠️ Low Stock Alert</h3>
           <div className="space-y-2">
             {lowStockItems.slice(0, 5).map((item) => (
-              <div key={item.inventoryId} className="flex justify-between text-sm">
-                <span>{item.productName} ({item.warehouseName})</span>
+              <div key={item?.inventoryId || item?.id} className="flex justify-between text-sm">
+                <span>{item?.productName || 'Unknown'} ({item?.warehouseName || 'Unknown'})</span>
                 <span className="text-red-600 font-semibold">
-                  {item.currentStock}/{item.threshold}
+                  {item?.currentStock || 0}/{item?.threshold || 0}
                 </span>
               </div>
             ))}
@@ -256,9 +264,9 @@ export default function InventoryPage() {
           className="px-3 py-2 border rounded-lg"
         >
           <option value="">All Products</option>
-          {products.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
+          {Array.isArray(products) && products.map((p) => (
+            <option key={p?.id || p?._id} value={p?.id || p?._id}>
+              {p?.name || 'Unknown'}
             </option>
           ))}
         </select>
@@ -274,24 +282,24 @@ export default function InventoryPage() {
             render: (row) => (
               <span
                 className={
-                  row.isLowStock
+                  row?.isLowStock
                     ? "text-red-600 font-semibold"
                     : "text-green-600 font-semibold"
                 }
               >
-                {row.quantity} {row.product?.unitOfMeasure || "pcs"}
+                {row?.quantity || 0} {row?.product?.unitOfMeasure || "pcs"}
               </span>
             ),
           },
           {
             key: "product.lowStockThreshold",
             label: "Threshold",
-            render: (row) => row.product?.lowStockThreshold,
+            render: (row) => row?.product?.lowStockThreshold || 0,
           },
           {
             key: "total_value",
             label: "Value",
-            render: (row) => `₹${(row.quantity * (row.product?.costPrice || 0)).toLocaleString()}`,
+            render: (row) => `₹${((row?.quantity || 0) * (row?.product?.costPrice || 0)).toLocaleString()}`,
           },
           {
             key: "actions",
@@ -345,15 +353,15 @@ export default function InventoryPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredInventories.map((inv) => (
-                <tr key={inv.id} className="border-t">
-                  <td className="px-4 py-2">{inv.product?.name}</td>
-                  <td className="px-4 py-2 text-right">{inv.quantity}</td>
+              {Array.isArray(filteredInventories) && filteredInventories.map((inv) => (
+                <tr key={inv?.id || inv?._id} className="border-t">
+                  <td className="px-4 py-2">{inv?.product?.name || 'Unknown'}</td>
+                  <td className="px-4 py-2 text-right">{inv?.quantity || 0}</td>
                   <td className="px-4 py-2 text-right">
-                    ₹{(inv.quantity * (inv.product?.costPrice || 0)).toLocaleString()}
+                    ₹{((inv?.quantity || 0) * (inv?.product?.costPrice || 0)).toLocaleString()}
                   </td>
                   <td className="px-4 py-2 text-center">1</td>
-                  <td className="px-4 py-2 text-center">{inv.quantity === 0 ? "✓" : "-"}</td>
+                  <td className="px-4 py-2 text-center">{(inv?.quantity || 0) === 0 ? "✓" : "-"}</td>
                 </tr>
               ))}
             </tbody>
@@ -365,8 +373,8 @@ export default function InventoryPage() {
 
   const LowStockTab = () => (
     <div className="bg-white p-4 rounded-lg border">
-      <h3 className="font-semibold mb-4">Low Stock Items ({lowStockItems.length})</h3>
-      {lowStockItems.length === 0 ? (
+      <h3 className="font-semibold mb-4">Low Stock Items ({Array.isArray(lowStockItems) ? lowStockItems.length : 0})</h3>
+      {!Array.isArray(lowStockItems) || lowStockItems.length === 0 ? (
         <p className="text-gray-500">No low stock items</p>
       ) : (
         <div className="overflow-x-auto">
@@ -383,16 +391,16 @@ export default function InventoryPage() {
             </thead>
             <tbody>
               {lowStockItems.map((item) => (
-                <tr key={item.inventoryId} className="border-t">
-                  <td className="px-4 py-2 font-medium">{item.productName}</td>
-                  <td className="px-4 py-2 text-gray-500">{item.sku}</td>
-                  <td className="px-4 py-2">{item.warehouseName}</td>
+                <tr key={item?.inventoryId || item?.id} className="border-t">
+                  <td className="px-4 py-2 font-medium">{item?.productName || 'Unknown'}</td>
+                  <td className="px-4 py-2 text-gray-500">{item?.sku || 'N/A'}</td>
+                  <td className="px-4 py-2">{item?.warehouseName || 'Unknown'}</td>
                   <td className="px-4 py-2 text-right">
-                    <span className="text-red-600 font-semibold">{item.currentStock}</span>
+                    <span className="text-red-600 font-semibold">{item?.currentStock || 0}</span>
                   </td>
-                  <td className="px-4 py-2 text-right">{item.threshold}</td>
+                  <td className="px-4 py-2 text-right">{item?.threshold || 0}</td>
                   <td className="px-4 py-2 text-right font-semibold">
-                    {Math.max(0, item.threshold - item.currentStock)}
+                    {Math.max(0, (item?.threshold || 0) - (item?.currentStock || 0))}
                   </td>
                 </tr>
               ))}
