@@ -13,6 +13,10 @@ app.get('/', (req, res) => {
   res.send('Welcome Ceramic API Running')
 })
 
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'API routes are active' })
+})
+
 // Import routes from the backend folder
 const authRoutes = require('./backend/routes/authRoutes')
 const userRoutes = require('./backend/routes/userRoutes')
