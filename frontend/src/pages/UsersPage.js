@@ -8,7 +8,7 @@ import SearchBar from "../components/SearchBar";
 import StatusBadge from "../components/StatusBadge";
 import useDebounce from "../hooks/useDebounce";
 
-const defaultForm = { name: "", email: "", role: "staff", isActive: true, permissions: [] };
+const defaultForm = { name: "", email: "", password: "", role: "staff", isActive: true, permissions: [] };
 
 const availableModules = [
   { id: "inventory", label: "Record Stock Movements" },
@@ -164,6 +164,15 @@ export default function UsersPage({ users, saveUser, toggleUserStatus, canEdit }
         <form className="grid gap-4" onSubmit={submit}>
           <Input label="Name" value={form.name} onChange={(value) => setForm((prev) => ({ ...prev, name: value }))} />
           <Input label="Email" value={form.email} onChange={(value) => setForm((prev) => ({ ...prev, email: value }))} />
+          {(!editingUser || form.password) && (
+            <Input 
+              label={editingUser ? "Change Password (Optional)" : "Password"} 
+              type="password" 
+              value={form.password} 
+              onChange={(value) => setForm((prev) => ({ ...prev, password: value }))} 
+              required={!editingUser}
+            />
+          )}
           <label className="grid gap-1 text-sm font-semibold text-slate-700">
             Role
             <select
@@ -226,15 +235,16 @@ export default function UsersPage({ users, saveUser, toggleUserStatus, canEdit }
   );
 }
 
-function Input({ label, value, onChange }) {
+function Input({ label, value, onChange, type = "text", required = true }) {
   return (
     <label className="grid gap-1 text-sm font-semibold text-slate-700">
       {label}
       <input
-        required
-        value={value}
+        type={type}
+        required={required}
+        value={value || ""}
         onChange={(event) => onChange(event.target.value)}
-        className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
+        className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none transition-all"
       />
     </label>
   );
