@@ -47,15 +47,7 @@ function AppShell() {
   const [suppliers, setSuppliers] = useState([]);
   const [inventory, setInventory] = useState([]);
 
-  useEffect(() => {
-    setInventory(products.map(p => ({
-      id: p.id,
-      tileId: p.id,
-      warehouseId: warehouses.length > 0 ? warehouses[0].id : "default",
-      quantityInStock: p.currentQuantity || 0,
-      reorderLevel: p.lowStockThreshold || 10
-    })));
-  }, [products, warehouses]);
+  // inventory is fetched from the backend (per-warehouse stock)
   const [movements, setMovements] = useState([]);
   const [transfers, setTransfers] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -94,7 +86,7 @@ function AppShell() {
     const fetchInitialData = async () => {
       try {
         if (isAuthenticated) {
-          const [fetchedUsers, fetchedProducts, fetchedCategories, fetchedMovements, fetchedSuppliers, fetchedOrders, fetchedWarehouses] = await Promise.all([
+          const [fetchedUsers, fetchedProducts, fetchedCategories, fetchedMovements, fetchedSuppliers, fetchedOrders, fetchedWarehouses, fetchedInventory] = await Promise.all([
             canManageUsers ? apiCall("/users").catch(()=>[]) : Promise.resolve([]),
             apiCall("/products").catch(()=>[]),
             apiCall("/categories").catch(()=>[]),
@@ -102,6 +94,7 @@ function AppShell() {
             apiCall("/suppliers").catch(()=>[]),
             apiCall("/orders").catch(()=>[]),
             apiCall("/warehouses").catch(()=>[])
+            , apiCall("/inventory").catch(()=>[])
           ]);
           if (canManageUsers) setUsers(fetchedUsers.map(u => ({ ...u, id: u._id })));
           setProducts(fetchedProducts.map(p => ({ ...p, id: p._id })));
@@ -110,6 +103,15 @@ function AppShell() {
           setSuppliers(fetchedSuppliers.map(s => ({ ...s, id: s._id })));
           setOrders(fetchedOrders.map(o => ({ ...o, id: o._id })));
           setWarehouses(fetchedWarehouses.map(w => ({ ...w, id: w._id })));
+          setInventory(fetchedInventory.map(i => ({
+            id: i.id || `${i.tileId}-${i.warehouseId}`,
+            tileId: i.tileId,
+            warehouseId: i.warehouseId,
+            quantityInStock: i.quantityInStock,
+            reorderLevel: i.reorderLevel,
+            tileName: i.tileName,
+            warehouseName: i.warehouseName
+          })));
         }
       } catch (e) {
         console.error("Failed to fetch initial data", e);
@@ -262,6 +264,17 @@ function AppShell() {
         }
         return p;
       }));
+      // refresh inventory from server so per-warehouse quantities stay correct
+      const freshInventory = await apiCall('/inventory').catch(()=>[]);
+      setInventory(freshInventory.map(i => ({
+        id: i.id || `${i.tileId}-${i.warehouseId}`,
+        tileId: i.tileId,
+        warehouseId: i.warehouseId,
+        quantityInStock: i.quantityInStock,
+        reorderLevel: i.reorderLevel,
+        tileName: i.tileName,
+        warehouseName: i.warehouseName
+      })));
       
       toast.success("Stock movement recorded");
     } catch (e) {
@@ -317,12 +330,22 @@ function AppShell() {
       setOrders((prev) => prev.map((item) => (item.id === orderId ? { ...updatedOrder, id: updatedOrder._id } : item)));
       
       // Also silently fetch products and movements again since they got updated in backend
-      const [newProducts, newMovements] = await Promise.all([
+      const [newProducts, newMovements, newInventory] = await Promise.all([
         apiCall("/products").catch(()=>[]),
-        apiCall("/movements").catch(()=>[])
+        apiCall("/movements").catch(()=>[]),
+        apiCall('/inventory').catch(()=>[])
       ]);
       setProducts(newProducts.map(p => ({ ...p, id: p._id })));
       setMovements(newMovements.map(normalizeMovement));
+      setInventory(newInventory.map(i => ({
+        id: i.id || `${i.tileId}-${i.warehouseId}`,
+        tileId: i.tileId,
+        warehouseId: i.warehouseId,
+        quantityInStock: i.quantityInStock,
+        reorderLevel: i.reorderLevel,
+        tileName: i.tileName,
+        warehouseName: i.warehouseName
+      })));
 
       toast.success("Items received and inventory updated");
     } catch (e) {
